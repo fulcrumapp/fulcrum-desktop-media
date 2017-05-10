@@ -1,0 +1,38 @@
+{
+  "name": "plugin",
+  "version": "1.0.0",
+  "main": "dist/plugin.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "node_modules/.bin/babel *.js --out-dir dist --source-maps=inline",
+    "watch": "node_modules/.bin/babel *.js --out-dir dist --source-maps=inline --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "async": "^2.4.0",
+    "fulcrum-desktop-plugin": "^1.4.0",
+    "mkdirp": "^0.5.1",
+    "request": "^2.81.0",
+    "rimraf": "^2.6.1"
+  },
+  "babel": {
+    "plugins": [
+      "fulcrum-desktop"
+    ],
+    "presets": [
+      "stage-0",
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-fulcrum-desktop": "^1.0.0"
+  }
+}
