@@ -1,6 +1,6 @@
 ## Fulcrum Desktop Media
 
-Download Fulcrum media files.
+Download Fulcrum media files. Supports concurrent file downloads and automatic retries.
 
 ### Installation
 
