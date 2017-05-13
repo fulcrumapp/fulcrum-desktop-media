@@ -11,9 +11,13 @@
   "dependencies": {
     "async": "^2.4.0",
     "fulcrum-desktop-plugin": "^1.4.0",
+    "level-jobs": "^0.6.0",
+    "leveldown": "^1.6.0",
+    "levelup": "^1.3.6",
     "mkdirp": "^0.5.1",
     "request": "^2.81.0",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "tempy": "^0.1.0"
   },
   "babel": {
     "plugins": [
