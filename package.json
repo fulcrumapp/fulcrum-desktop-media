@@ -13,8 +13,7 @@
     "fulcrum-desktop-plugin": "^1.4.0",
     "mkdirp": "^0.5.1",
     "request": "^2.81.0",
-    "rimraf": "^2.6.1",
-    "tempy": "^0.1.0"
+    "rimraf": "^2.6.1"
   },
   "babel": {
     "plugins": [
