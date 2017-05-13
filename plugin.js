@@ -5,9 +5,6 @@ import fs from 'fs';
 import { APIClient } from 'fulcrum';
 import request from 'request';
 import rimraf from 'rimraf';
-import levelup from 'levelup';
-import tempy from 'tempy';
-import Jobs from 'level-jobs';
 
 export default class {
   async task(cli) {
@@ -23,6 +20,10 @@ export default class {
         mediaPath: {
           desc: 'media storage directory',
           type: 'string'
+        },
+        concurrency: {
+          desc: 'concurrent downloads (between 1 and 10)',
+          type: 'number'
         }
       },
       handler: this.runCommand
@@ -35,25 +36,16 @@ export default class {
     const account = await fulcrum.fetchAccount(fulcrum.args.org);
 
     if (account) {
-      // this.queue = new ConcurrentQueue(this.worker);
+      const concurrency = Math.min(Math.max(1, fulcrum.args.concurrency || 5), 10);
 
-      const queueFile = tempy.file({extension: 'db'});
-
-      this.queueDatabase = levelup(queueFile);
-      this.queue = Jobs(this.queueDatabase, (task, cb) => {
-        this.worker(task).then(cb, cb);
-      }, 5);
+      this.queue = new ConcurrentQueue(this.worker, concurrency);
 
       await this.queueMediaDownload(account, 'photos', 'photo');
       await this.queueMediaDownload(account, 'signatures', 'signature');
       await this.queueMediaDownload(account, 'audio', 'audio');
       await this.queueMediaDownload(account, 'videos', 'video');
 
-      // await this.queue.drain();
-
-      await new Promise((resolve, reject) => {
-        this.queue.on('drain', resolve);
-      });
+      await this.queue.drain();
     } else {
       console.error('Unable to find account', fulcrum.args.org);
     }
@@ -82,8 +74,6 @@ export default class {
       audio: APIClient.getAudioURL,
       signature: APIClient.getSignatureURL
     }[task.type].bind(APIClient)({token: task.token}, task);
-
-    console.log('WORK', url);
 
     const extension = {
       photo: 'jpg',
@@ -124,10 +114,6 @@ export default class {
   }
 
   async downloadWithRetries(url, outputFileName) {
-    // await APIClient.download(url, outputFileName);
-    await this.download(url, outputFileName);
-    return outputFileName;
-
     let tries = 0;
     const maxTries = 5;
 
@@ -158,22 +144,6 @@ export default class {
         .on('abort', () => reject(new Error('not found')))
         .on('close', () => resolve(rq))
         .on('error', reject);
-      // rq.on('close', () => resolve(rq));
-      // rq.on('error', reject);
-    });
-
-    return new Promise((resolve, reject) => {
-      const rq =
-        request(url)
-          .on('response', function (response) {
-            if (response.statusCode !== 200) {
-              this.abort();
-            }
-          })
-          .on('abort', () => reject(new Error('not found')))
-          .on('close', () => resolve(rq))
-          .on('error', reject)
-          .pipe(fs.createWriteStream(to));
     });
   }
 }
