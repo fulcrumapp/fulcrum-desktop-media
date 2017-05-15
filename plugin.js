@@ -134,16 +134,17 @@ export default class {
 
   download(url, to) {
     return new Promise((resolve, reject) => {
-      const rq = request(url).pipe(fs.createWriteStream(to));
-
-      rq.on('response', function (response) {
-            if (response.statusCode !== 200) {
-              this.abort();
-            }
-          })
+      const req = request
+        .get(url)
+        .on('response', function(response) {
+          if (response.statusCode !== 200) {
+            this.abort();
+          }
+        })
         .on('abort', () => reject(new Error('not found')))
-        .on('close', () => resolve(rq))
-        .on('error', reject);
+        .on('end', () => resolve(req))
+        .on('error', reject)
+        .pipe(fs.createWriteStream(to));
     });
   }
 }
