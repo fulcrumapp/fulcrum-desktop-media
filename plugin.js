@@ -2,7 +2,7 @@ import path from 'path';
 import mkdirp from 'mkdirp';
 import ConcurrentQueue from './concurrent-queue';
 import fs from 'fs';
-import { APIClient } from 'fulcrum';
+import { APIClient, core } from 'fulcrum';
 import request from 'request';
 import rimraf from 'rimraf';
 
@@ -84,6 +84,10 @@ export default class {
 
     const outputFileName = path.join(this.mediaPath, task.table, task.id + '.' + extension);
 
+    if (task.track) {
+      this.writeTracks(task.id, task.table, task.track);
+    }
+
     if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size === 0) {
       try {
         console.log('Downloading', task.type.green, task.id);
@@ -100,14 +104,39 @@ export default class {
     }
   }
 
+  writeTracks(id, table, trackJSON) {
+    const track = new core.Track(id, JSON.parse(trackJSON));
+
+    this.writeTrackFile(id, table, 'gpx', track, 'toGPX');
+    this.writeTrackFile(id, table, 'kml', track, 'toKML');
+    this.writeTrackFile(id, table, 'srt', track, 'toSRT');
+    this.writeTrackFile(id, table, 'geojson', track, 'toGeoJSONString');
+    this.writeTrackFile(id, table, 'json', track, 'toJSONString');
+  }
+
+  writeTrackFile(id, table, extension, track, method) {
+    const outputFileName = path.join(this.mediaPath, table, id + '.' + extension);
+
+    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size === 0) {
+      fs.writeFileSync(outputFileName, track[method]().toString());
+    }
+  }
+
   async queueMediaDownload(account, table, type) {
-    await account.findEachBySQL(`SELECT resource_id FROM ${ table } WHERE is_downloaded = 0`, [], ({values}) => {
+    let trackColumn = 'NULL as track';
+
+    if (type === 'video' || type === 'audio') {
+      trackColumn = 'track';
+    }
+
+    await account.findEachBySQL(`SELECT resource_id, ${ trackColumn }  FROM ${ table } WHERE is_downloaded = 0`, [], ({values}) => {
       if (values) {
         this.queue.push({
           token: account.token,
           type: type,
           table: table,
-          id: values.resource_id
+          id: values.resource_id,
+          track: values.track
         });
       }
     });
