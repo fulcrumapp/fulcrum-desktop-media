@@ -88,7 +88,7 @@ export default class {
       this.writeTracks(task.id, task.table, task.track);
     }
 
-    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size === 0) {
+    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 1000) {
       try {
         console.log('Downloading', task.type.green, task.id);
 
@@ -129,7 +129,7 @@ export default class {
       trackColumn = 'track';
     }
 
-    await account.findEachBySQL(`SELECT resource_id, ${ trackColumn }  FROM ${ table } WHERE is_downloaded = 0`, [], ({values}) => {
+    await account.findEachBySQL(`SELECT resource_id, ${ trackColumn } FROM ${ table } WHERE is_downloaded = 0`, [], ({values}) => {
       if (values) {
         this.queue.push({
           token: account.token,
