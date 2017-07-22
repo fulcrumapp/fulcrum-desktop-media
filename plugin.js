@@ -129,7 +129,7 @@ export default class {
       trackColumn = 'track';
     }
 
-    await account.findEachBySQL(`SELECT resource_id, ${ trackColumn } FROM ${ table } WHERE is_downloaded = 0`, [], ({values}) => {
+    await account.findEachBySQL(`SELECT resource_id, ${ trackColumn } FROM ${ table } WHERE account_id = ${ account.rowID } AND is_stored = 1 AND is_downloaded = 0`, null, ({values}) => {
       if (values) {
         this.queue.push({
           token: account.token,
