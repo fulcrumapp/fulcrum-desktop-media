@@ -118,7 +118,11 @@ export default class {
     const outputFileName = path.join(this.mediaPath, table, id + '.' + extension);
 
     if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size === 0) {
-      fs.writeFileSync(outputFileName, track[method]().toString());
+      try {
+        fs.writeFileSync(outputFileName, track[method]().toString());
+      } catch (ex) {
+        console.log(ex);
+      }
     }
   }
 
