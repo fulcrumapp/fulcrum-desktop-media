@@ -21,7 +21,7 @@ export default class {
           desc: 'media storage directory',
           type: 'string'
         },
-        concurrency: {
+        mediaConcurrency: {
           desc: 'concurrent downloads (between 1 and 10)',
           type: 'number'
         }
@@ -36,7 +36,7 @@ export default class {
     const account = await fulcrum.fetchAccount(fulcrum.args.org);
 
     if (account) {
-      const concurrency = Math.min(Math.max(1, fulcrum.args.concurrency || 5), 10);
+      const concurrency = Math.min(Math.max(1, fulcrum.args.mediaConcurrency || 5), 10);
 
       this.queue = new ConcurrentQueue(this.worker, concurrency);
 
