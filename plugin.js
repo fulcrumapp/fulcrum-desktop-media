@@ -6,6 +6,8 @@ import { APIClient, core } from 'fulcrum';
 import request from 'request';
 import rimraf from 'rimraf';
 
+const { log, warn, error } = fulcrum.logger.withContext('media');
+
 export default class {
   async task(cli) {
     return cli.command({
@@ -47,7 +49,7 @@ export default class {
 
       await this.queue.drain();
     } else {
-      console.error('Unable to find account', fulcrum.args.org);
+      error('Unable to find account', fulcrum.args.org);
     }
   }
 
@@ -90,16 +92,16 @@ export default class {
 
     if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 1000) {
       try {
-        console.log('Downloading', task.type.green, task.id);
+        log('Downloading', task.type, task.id);
 
         const outputName = await this.downloadWithRetries(url, outputFileName);
 
         if (outputName == null) {
-          console.log('Not Found'.red, url);
+          log('Not Found', url);
           rimraf.sync(outputFileName);
         }
       } catch (ex) {
-        console.log(ex);
+        log(ex);
       }
     }
   }
@@ -121,7 +123,8 @@ export default class {
       try {
         fs.writeFileSync(outputFileName, track[method]().toString());
       } catch (ex) {
-        console.log(ex);
+        error('error processing track file', extension, id);
+        error(ex);
       }
     }
   }
@@ -160,7 +163,7 @@ export default class {
           return null;
         }
 
-        console.error('Failed'.red, url, ex.message, 'retrying...');
+        error('Failed', url, ex.message, 'retrying...');
       }
     }
   }
