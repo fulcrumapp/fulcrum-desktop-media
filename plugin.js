@@ -35,7 +35,7 @@ export default class {
   runCommand = async () => {
     await this.activate();
 
-    const account = await fulcrum.fetchAccount(fulcrum.args.org);
+    const account = this.account = await fulcrum.fetchAccount(fulcrum.args.org);
 
     if (account) {
       const concurrency = Math.min(Math.max(1, fulcrum.args.mediaConcurrency || 5), 10);
@@ -90,6 +90,8 @@ export default class {
       this.writeTracks(task.id, task.table, task.track);
     }
 
+    let success = true;
+
     if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 10) {
       try {
         log('Downloading', task.type, task.id);
@@ -99,10 +101,16 @@ export default class {
         if (outputName == null) {
           log('Not Found', url);
           rimraf.sync(outputFileName);
+          success = false;
         }
       } catch (ex) {
         log(ex);
+        success = false;
       }
+    }
+
+    if (downloaded) {
+      await this.updateDownloadState(task.table, task.id);
     }
   }
 
@@ -182,5 +190,17 @@ export default class {
         .on('error', reject)
         .pipe(fs.createWriteStream(to));
     });
+  }
+
+  updateDownloadState(table, id) {
+    // Don't update the state of videos or audio because the track files might come later and we need to re-process them.
+    // In order to fix this, we would need to store the download state of the track and the raw video file.
+    if (table === 'videos' || table === 'audio') {
+      return;
+    }
+
+    return this.account.db.execute(`
+      UPDATE ${ table } SET is_downloaded = 1 WHERE WHERE account_id = ${ this.account.rowID } AND resource_id = '${ id }'
+    `);
   }
 }
