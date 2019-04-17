@@ -90,7 +90,7 @@ export default class {
       this.writeTracks(task.id, task.table, task.track);
     }
 
-    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 1000) {
+    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 10) {
       try {
         log('Downloading', task.type, task.id);
 
