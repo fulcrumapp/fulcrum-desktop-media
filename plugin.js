@@ -109,7 +109,7 @@ export default class {
       }
     }
 
-    if (downloaded) {
+    if (success) {
       await this.updateDownloadState(task.table, task.id);
     }
   }
