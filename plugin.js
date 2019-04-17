@@ -200,7 +200,7 @@ export default class {
     }
 
     return this.account.db.execute(`
-      UPDATE ${ table } SET is_downloaded = 1 WHERE WHERE account_id = ${ this.account.rowID } AND resource_id = '${ id }'
+      UPDATE ${ table } SET is_downloaded = 1 WHERE account_id = ${ this.account.rowID } AND resource_id = '${ id }'
     `);
   }
 }
