@@ -70,47 +70,51 @@ export default class {
   }
 
   worker = async (task) => {
-    const url = {
-      photo: APIClient.getPhotoURL,
-      video: APIClient.getVideoURL,
-      audio: APIClient.getAudioURL,
-      signature: APIClient.getSignatureURL
-    }[task.type].bind(APIClient)({token: task.token}, task);
+    try {
+      const url = {
+        photo: APIClient.getPhotoURL,
+        video: APIClient.getVideoURL,
+        audio: APIClient.getAudioURL,
+        signature: APIClient.getSignatureURL
+      }[task.type].bind(APIClient)({token: task.token}, task);
 
-    const extension = {
-      photo: 'jpg',
-      video: 'mp4',
-      audio: 'm4a',
-      signature: 'png'
-    }[task.type];
+      const extension = {
+        photo: 'jpg',
+        video: 'mp4',
+        audio: 'm4a',
+        signature: 'png'
+      }[task.type];
 
-    const outputFileName = path.join(this.mediaPath, task.table, task.id + '.' + extension);
+      const outputFileName = path.join(this.mediaPath, task.table, task.id + '.' + extension);
 
-    if (task.track) {
-      this.writeTracks(task.id, task.table, task.track);
-    }
+      if (task.track) {
+        this.writeTracks(task.id, task.table, task.track);
+      }
 
-    let success = true;
+      let success = true;
 
-    if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 10) {
-      try {
-        log('Downloading', task.type, task.id);
+      if (!fs.existsSync(outputFileName) || fs.statSync(outputFileName).size < 10) {
+        try {
+          log('Downloading', task.type, task.id);
 
-        const outputName = await this.downloadWithRetries(url, outputFileName);
+          const outputName = await this.downloadWithRetries(url, outputFileName);
 
-        if (outputName == null) {
-          log('Not Found', url);
-          rimraf.sync(outputFileName);
+          if (outputName == null) {
+            log('Not Found', url);
+            rimraf.sync(outputFileName);
+            success = false;
+          }
+        } catch (ex) {
+          log(ex);
           success = false;
         }
-      } catch (ex) {
-        log(ex);
-        success = false;
       }
-    }
 
-    if (success) {
-      await this.updateDownloadState(task.table, task.id);
+      if (success) {
+        await this.updateDownloadState(task.table, task.id);
+      }
+    } catch (ex) {
+      error(ex);
     }
   }
 
