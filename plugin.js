@@ -185,7 +185,7 @@ export default class {
       const req = request
         .get(url)
         .on('response', function(response) {
-          if (response.statusCode === 404) {
+          if (response.statusCode !== 200) {
             this.abort();
           }
         })
