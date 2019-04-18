@@ -38,7 +38,7 @@ export default class {
     const account = this.account = await fulcrum.fetchAccount(fulcrum.args.org);
 
     if (account) {
-      const concurrency = Math.min(Math.max(1, fulcrum.args.mediaConcurrency || 5), 10);
+      const concurrency = Math.min(Math.max(1, fulcrum.args.mediaConcurrency || 3), 10);
 
       this.queue = new ConcurrentQueue(this.worker, concurrency);
 
